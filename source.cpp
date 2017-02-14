@@ -1,7 +1,13 @@
+/*probabilmente il getch non funziona
+il movimento potrebbe essere rotto
+da fixare movimento/stampa
+14/02
+*/
 #include <iostream>
 #include <conio2.h>
 #include <fstream>
 #include <windows.h>
+#include <algorithm>
 
 
 using namespace std;
@@ -117,19 +123,22 @@ void spawn_pac(bool check)
 
 void play()
 {
-	int tmp;
-	while(!kbhit());
-	
+	int temp_dir;
 	for(int cycles=0; ;cycles++)
 	{
-		
-		
+		if(kbhit())
+		{
+			temp_dir=pac_dir;
+			pac_dir=getch();
+			//if(!check_wall())
+				//pac_dir=temp_dir;
+		}
 		if(!cycles&1)
 		{
 			if(kbhit())
-				
+				 
 			move_pac();
-			move_ghost();
+			//move_ghost();
 		}
 		if(powerup && cycles&1)
 		{
@@ -146,10 +155,10 @@ void move_pac()
 	if(check_wall())
 		switch(pac_dir)
 		{
-			case UP : ypac--; break;
-			case DOWN : ypac++; break;
-			case LEFT : xpac--; break;
-			case RIGHT : xpac++; break;
+			case UP : xpac--; break;
+			case DOWN : xpac++; break;
+			case LEFT : ypac--; break;
+			case RIGHT : ypac++; break;
 		}
 		
 	else
@@ -161,12 +170,12 @@ void move_pac()
 
 bool check_wall()
 {
-	switch(dir)
+	switch(pac_dir)
 	{
 		case LEFT : 
 			for(int i=0; i<3; i++)
 			{
-				if(!(find(block_list,block_list+6,map[y+i][x-1]))==7)
+				if(find(block_list,block_list+6,map[ypac+i][xpac-1])!=(block_list+6))
 				{
 					pac_dir=0;
 					return false;
@@ -176,7 +185,7 @@ bool check_wall()
 		case RIGHT : 
 			for(int i=0; i<3; i++)
 			{
-				if(!(find(block_list,block_list+6,map[y+i][x+5]))==7)
+				if(find(block_list,block_list+6,map[ypac+i][xpac+5])!=(block_list+6))
 				{
 					pac_dir=0;
 					return false;
@@ -186,7 +195,7 @@ bool check_wall()
 		case UP : 
 			for(int i=0; i<5; i++)
 			{
-				if(!(find(block_list,block_list+6,map[y-1][x+i]))==7)
+				if(find(block_list,block_list+6,map[ypac-1][xpac+i])!=(block_list+6))
 				{
 					pac_dir=0;
 					return false;
@@ -196,13 +205,14 @@ bool check_wall()
 		case DOWN : 
 			for(int i=0; i<5; i++)
 			{
-				if(!(find(block_list,block_list+6,map[y+3][x+i]))==7)
+				if(find(block_list,block_list+6,map[ypac+3][xpac+i])!=(block_list+6))
 				{
 					pac_dir=0;
 					return false;
 				}
 				
 			}
+		default: return false;
 	}
 	return true;
 }
