@@ -1,7 +1,5 @@
-/*probabilmente il getch non funziona
-il movimento potrebbe essere rotto
-da fixare movimento/stampa
-14/02
+/*
+21/02/2017 Da sistemare checkwall
 */
 #include <iostream>
 #include <conio2.h>
@@ -53,12 +51,14 @@ void move_ghost();
 
 // Variables : 
 string map[ROWS]; 
-int xpac,ypac; // Cordinate pac
+int xpac=59,ypac=41; // Cordinate pac
 int pac_dir=0;
 bool powerup=false;
 
 int main()
 {
+	system("pause>nul");
+	textattr(0x0c);
 	upload_map();
 	print_map();
 	spawn_pac(true);
@@ -119,6 +119,8 @@ void spawn_pac(bool check)
 	gotoxy(xpac,ypac);
 	cout<<pac3;
 	
+	ypac-=2;
+	
 }
 
 void play()
@@ -126,43 +128,48 @@ void play()
 	int temp_dir;
 	for(int cycles=0; ;cycles++)
 	{
+		Sleep(100);
 		if(kbhit())
 		{
 			temp_dir=pac_dir;
+			fflush(stdin);
 			pac_dir=getch();
+			fflush(stdin);
+			pac_dir=getch();
+			fflush(stdin);
 			//if(!check_wall())
 				//pac_dir=temp_dir;
 		}
-		if(!cycles&1)
-		{
-			if(kbhit())
+		//if(!cycles&1)
+		//{
+			//if(kbhit())
 				 
 			move_pac();
 			//move_ghost();
-		}
+		//}
 		if(powerup && cycles&1)
 		{
 			move_pac();
-		}	
+		}
 	}
 }
 
 void move_pac()
 {
-	gotoxy(ypac, xpac);
+	//gotoxy(ypac, xpac);
 	textattr(0x00);
 	spawn_pac(false);
 	if(check_wall())
 		switch(pac_dir)
 		{
-			case UP : xpac--; break;
-			case DOWN : xpac++; break;
-			case LEFT : ypac--; break;
-			case RIGHT : ypac++; break;
+			case UP : ypac--; break; // Abbiamo invertito
+			case DOWN : ypac++; break;
+			case LEFT : xpac--; break;
+			case RIGHT : xpac++; break;
 		}
 		
-	else
-		pac_dir=0;
+	/*else
+		pac_dir=0;*/
 		
 	textattr(0xEE);
 	spawn_pac(false);
@@ -170,6 +177,7 @@ void move_pac()
 
 bool check_wall()
 {
+	string map_tmp;
 	switch(pac_dir)
 	{
 		case LEFT : 
@@ -185,7 +193,8 @@ bool check_wall()
 		case RIGHT : 
 			for(int i=0; i<3; i++)
 			{
-				if(find(block_list,block_list+6,map[ypac+i][xpac+5])!=(block_list+6))
+				map_tmp=map[ypac+i]; // Prove per check wall
+				if(find(block_list,block_list+6,map_tmp[xpac+5])!=(block_list+6))
 				{
 					pac_dir=0;
 					return false;
