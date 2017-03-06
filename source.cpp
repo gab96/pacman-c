@@ -17,7 +17,7 @@ using namespace std;
 #define UP 72
 #define LEFT 75
 #define RIGHT 77
-
+#define COND tmp2==WALL_VER||tmp2==WALL_HOR||tmp2==CORNER_UPPERLEFT||tmp2==CORNER_UPPERRIGHT||tmp2==CORNER_BOTTOMLEFT||tmp2==CORNER_BOTTOMRIGHT
 
 // Blocks costants : 
 	// Walls and others
@@ -44,7 +44,7 @@ void spawn_pac(bool);
 void play();
 
 // Pac Movements : 
-bool check_wall();
+bool check_wall(bool);
 void move_pac();
 void move_ghost();
 
@@ -54,6 +54,7 @@ string map[ROWS];
 int xpac=59,ypac=41; // Cordinate pac
 int pac_dir=0;
 bool powerup=false;
+int temp_dir;
 
 int main()
 {
@@ -125,20 +126,27 @@ void spawn_pac(bool check)
 
 void play()
 {
-	int temp_dir;
+	
 	for(int cycles=0; ;cycles++)
 	{
-		Sleep(100);
+		if(pac_dir!=0)
+			switch(pac_dir)
+			{
+				case UP:
+				case DOWN: Sleep(100);break;
+				case LEFT:
+				case RIGHT: Sleep(50);break;
+			}
 		if(kbhit())
 		{
-			temp_dir=pac_dir;
 			fflush(stdin);
-			pac_dir=getch();
+			temp_dir=getch();
 			fflush(stdin);
-			pac_dir=getch();
+			temp_dir=getch();
 			fflush(stdin);
-			//if(!check_wall())
-				//pac_dir=temp_dir;
+			if(pac_dir==0 || check_wall(true))
+				pac_dir=temp_dir;
+		 	if(pac_dir!=0)
 		}
 		//if(!cycles&1)
 		//{
@@ -157,72 +165,129 @@ void play()
 void move_pac()
 {
 	//gotoxy(ypac, xpac);
-	textattr(0x00);
-	spawn_pac(false);
-	if(check_wall())
-		switch(pac_dir)
-		{
-			case UP : ypac--; break; // Abbiamo invertito
-			case DOWN : ypac++; break;
-			case LEFT : xpac--; break;
-			case RIGHT : xpac++; break;
-		}
-		
-	/*else
-		pac_dir=0;*/
-		
-	textattr(0xEE);
-	spawn_pac(false);
+	if(pac_dir!=0){
+		textattr(0x00);
+		spawn_pac(false);
+		if(check_wall(pac_dir))
+			switch(pac_dir)
+			{
+				case UP : ypac--; break; // Abbiamo invertito
+				case DOWN : ypac++; break;
+				case LEFT : xpac--; break;
+				case RIGHT : xpac++; break;
+			}
+			
+		/*else
+			pac_dir=0;*/
+			
+		textattr(0xEE);
+			spawn_pac(false);
+	}
 }
 
-bool check_wall()
+bool check_wall(bool dir)
 {
+	/* Se viene passato true, il controllo viene fatto su pac_dir
+	   altrimenti il controllo viene fatto su temp_dir, scambiandoli.*/
+	   
+	int tmp2_dir;
 	string map_tmp;
+	if(!dir)
+	{
+		tmp2_dir=pac_dir;
+		pac_dir=temp_dir;
+		temp_dir=tmp2_dir;
+	}
+	
 	switch(pac_dir)
 	{
 		case LEFT : 
 			for(int i=0; i<3; i++)
 			{
-				if(find(block_list,block_list+6,map[ypac+i][xpac-1])!=(block_list+6))
+				char tmp2=map[ypac-1+i][xpac-2];
+				//if(find(block_list,block_list+6,map[ypac+i][xpac-1])!=(block_list+6))
+				if(COND)
 				{
 					pac_dir=0;
+					if(!dir)
+					{
+						tmp2_dir=temp_dir;
+						temp_dir=pac_dir;
+						pac_dir=tmp2_dir;	
+					}
+					
 					return false;
 				}
-				
 			}
+			break;
 		case RIGHT : 
 			for(int i=0; i<3; i++)
 			{
-				map_tmp=map[ypac+i]; // Prove per check wall
-				if(find(block_list,block_list+6,map_tmp[xpac+5])!=(block_list+6))
+				char tmp2=map[ypac-1+i][xpac+4]; // Prove per check wall
+				//if(find(block_list,block_list+6,map_tmp[xpac+5])!=(block_list+6))
+				if(COND)
 				{
 					pac_dir=0;
+					if(!dir)
+					{
+						tmp2_dir=temp_dir;
+						temp_dir=pac_dir;
+						pac_dir=tmp2_dir;
+					}
+					
 					return false;
 				}
-				
 			}
+			break;
 		case UP : 
 			for(int i=0; i<5; i++)
 			{
-				if(find(block_list,block_list+6,map[ypac-1][xpac+i])!=(block_list+6))
+				char tmp2=map[ypac-2][xpac-1+i];
+				//if(find(block_list,block_list+6,map[ypac-1][xpac+i])!=(block_list+6))
+				if(COND)
 				{
 					pac_dir=0;
+					if(!dir)
+					{
+						tmp2_dir=temp_dir;
+						temp_dir=pac_dir;
+						pac_dir=tmp2_dir;
+					}
 					return false;
 				}
-				
 			}
+			break;
 		case DOWN : 
 			for(int i=0; i<5; i++)
 			{
-				if(find(block_list,block_list+6,map[ypac+3][xpac+i])!=(block_list+6))
+				char tmp2=map[ypac+2][xpac-1+i];
+				if(COND)
 				{
 					pac_dir=0;
+					if(!dir)
+					{
+						tmp2_dir=temp_dir;
+						temp_dir=pac_dir;
+						pac_dir=tmp2_dir;
+					}
 					return false;
-				}
-				
+				}	
 			}
-		default: return false;
+			break;
+		default: 
+			if(!dir)
+			{
+				tmp2_dir=temp_dir;
+				temp_dir=pac_dir;
+				pac_dir=tmp2_dir;
+			}
+			return false;
 	}
+	if(!dir)
+		{
+			tmp2_dir=temp_dir;
+			temp_dir=pac_dir;
+			pac_dir=tmp2_dir;
+		}
 	return true;
 }
-
